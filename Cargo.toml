@@ -1,0 +1,22 @@
+[package]
+name = "vulkan_rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+vulkanite = { version = "0.0.11", features = [
+    "loaded",
+    "version_1_4",
+    "raw-window-handle",
+    "ext_swapchain",
+    "ext_debug_utils",
+] }
+raw-window-handle = "0.6"
+winit = "0.30"
+bevy_ecs = { version = "0.17.2", default-features = false, features = [
+    "std",
+    "backtrace",
+] }
+
+[profile.dev]
+opt-level = 1
