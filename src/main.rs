@@ -35,7 +35,9 @@ impl ApplicationHandler for Application {
     }
 
     fn new_events(&mut self, _event_loop: &ActiveEventLoop, _cause: winit::event::StartCause) {
-        if let Some(engine) = &mut self.engine {}
+        if let Some(engine) = &mut self.engine {
+            engine.update();
+        }
     }
 
     fn window_event(

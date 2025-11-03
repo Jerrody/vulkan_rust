@@ -17,6 +17,7 @@ bevy_ecs = { version = "0.17.2", default-features = false, features = [
     "std",
     "backtrace",
 ] }
+glam = "0.30.9"
 
 [profile.dev]
 opt-level = 1

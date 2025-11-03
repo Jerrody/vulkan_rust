@@ -1647,6 +1647,7 @@ name = "vulkan_rust"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "glam",
  "raw-window-handle",
  "vulkanite",
  "winit",

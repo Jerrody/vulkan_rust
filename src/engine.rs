@@ -1,8 +1,10 @@
 use bevy_ecs::{schedule::Schedule, world::World};
 
 mod components;
+mod create_info;
 mod resources;
 mod systems;
+mod utils;
 
 use components::*;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle, RawDisplayHandle};
@@ -10,7 +12,10 @@ use resources::*;
 use systems::*;
 use vulkanite::{
     DefaultAllocator, Dispatcher, DynamicDispatcher, flagbits, structure_chain,
-    vk::{self, CommandBufferAllocateInfo, CommandPoolCreateFlags, CommandPoolCreateInfo, rs::*},
+    vk::{
+        self, CommandBufferAllocateInfo, CommandPoolCreateFlags, CommandPoolCreateInfo,
+        raw::wait_for_fences, rs::*,
+    },
 };
 use winit::dpi::PhysicalSize;
 
@@ -27,20 +32,27 @@ extern "system" fn debug_callback(
 }
 
 pub struct Engine {
-    pub world: World,
-    pub scheduler: Schedule,
+    world: World,
+    scheduler: Schedule,
+    frame_number: usize,
 }
 
 impl Engine {
-    const FRAMES_IN_FLIGHT: u32 = 2;
+    const FRAMES_IN_FLIGHT: usize = 2;
 
     pub fn new(window: &winit::window::Window) -> Self {
         let mut world = World::new();
-        let scheduler = Schedule::default();
+        let mut scheduler = Schedule::default();
 
         Self::create_resources(window, &mut world);
 
-        Self { world, scheduler }
+        scheduler.add_systems(systems::wait_for_fences_system);
+
+        Self {
+            world,
+            scheduler,
+            frame_number: Default::default(),
+        }
     }
 
     fn create_resources(window: &winit::window::Window, world: &mut World) {
@@ -80,10 +92,29 @@ impl Engine {
         let frames_data = Self::create_frames_data(device, queue_family_index);
         let frames_data_resource = FramesDataResource { data: frames_data };
 
+        let current_frame_data_resource = CurrentFrameDataResource::default();
+        let current_framebuffer_number_resource = CurrentFramebufferNumberResource::default();
+        let current_swapchain_image_resource = CurrentSwapchainImageResource::default();
+
         world.insert_resource(vulkan_context_resource);
         world.insert_resource(render_queue_resource);
         world.insert_resource(swapchain_resource);
         world.insert_resource(frames_data_resource);
+        world.insert_resource(current_frame_data_resource);
+        world.insert_resource(current_framebuffer_number_resource);
+        world.insert_resource(current_swapchain_image_resource);
+    }
+
+    #[inline(always)]
+    pub fn update(&mut self) {
+        self.scheduler.run(&mut self.world);
+
+        self.frame_number += 1;
+        let mut current_framebuffer_number_resource = self
+            .world
+            .get_resource_mut::<CurrentFramebufferNumberResource>()
+            .unwrap();
+        current_framebuffer_number_resource.index = self.frame_number % Self::FRAMES_IN_FLIGHT;
     }
 
     pub fn create_instance(
@@ -329,7 +360,21 @@ impl Engine {
 
             let command_buffer = command_buffers[0];
 
-            let frame_data = FrameData::new(command_pool, command_buffer);
+            let semaphore_create_info = create_info::create_semaphore_create_info();
+            let swapchain_semaphore = device.create_semaphore(&semaphore_create_info).unwrap();
+            let render_semaphore = device.create_semaphore(&semaphore_create_info).unwrap();
+
+            let render_fence_create_info = create_info::create_fence_create_info();
+            let render_fence = device.create_fence(&render_fence_create_info).unwrap();
+
+            let frame_data = FrameData::new(
+                command_pool,
+                command_buffer,
+                swapchain_semaphore,
+                render_semaphore,
+                render_fence,
+            );
+
             frames_data.push(frame_data);
         }
 
