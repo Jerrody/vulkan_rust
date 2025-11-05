@@ -17,6 +17,7 @@ pub fn submit_renderer_system(
     current_swapchain_image_resource: Res<CurrentSwapchainImageResource>,
     current_frame_data_resource: Res<CurrentFrameDataResource>,
 ) {
+    println!("7");
     if let Some(frame_data) = current_frame_data_resource.current_frame_data {
         let command_buffer_submit_infos = [create_command_buffer_submit_info(
             &frame_data.command_buffer,
@@ -49,6 +50,9 @@ pub fn submit_renderer_system(
             .wait_semaphores(wait_semaphores.as_slice())
             .swapchain(&swapchain_resource.swapchain, &image_indices, None::<()>);
 
-        render_queue_resource.queue.present_khr(&present_infos);
+        render_queue_resource
+            .queue
+            .present_khr(&present_infos)
+            .unwrap();
     }
 }

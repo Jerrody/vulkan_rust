@@ -1,4 +1,7 @@
-use bevy_ecs::{schedule::Schedule, world::World};
+use bevy_ecs::{
+    schedule::{IntoScheduleConfigs, Schedule},
+    world::World,
+};
 
 mod components;
 mod create_info;
@@ -46,7 +49,15 @@ impl Engine {
 
         Self::create_resources(window, &mut world);
 
-        scheduler.add_systems(systems::wait_for_fences_system);
+        scheduler.add_systems((
+            systems::get_current_frame_data_system,
+            systems::wait_for_fences_system.after(get_current_frame_data_system),
+            systems::acquire_next_swapchain_image_system.after(wait_for_fences_system),
+            systems::begin_command_buffer_system.after(acquire_next_swapchain_image_system),
+            systems::clear_value_system.after(begin_command_buffer_system),
+            systems::end_command_buffer_system.after(clear_value_system),
+            systems::submit_renderer_system.after(end_command_buffer_system),
+        ));
 
         Self {
             world,
@@ -114,6 +125,7 @@ impl Engine {
             .world
             .get_resource_mut::<CurrentFramebufferNumberResource>()
             .unwrap();
+        current_framebuffer_number_resource.frame_number = self.frame_number;
         current_framebuffer_number_resource.index = self.frame_number % Self::FRAMES_IN_FLIGHT;
     }
 

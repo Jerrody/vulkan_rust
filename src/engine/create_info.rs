@@ -58,3 +58,14 @@ pub fn create_submit_info<'a>(
 
     submit_info2
 }
+
+pub fn create_image_subresource_range(
+    image_aspect_flags: ImageAspectFlags,
+) -> ImageSubresourceRange {
+    let image_subresource_range = ImageSubresourceRange::default()
+        .aspect_mask(image_aspect_flags)
+        .layer_count(REMAINING_MIP_LEVELS)
+        .level_count(REMAINING_MIP_LEVELS);
+
+    image_subresource_range
+}

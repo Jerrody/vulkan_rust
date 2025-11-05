@@ -14,6 +14,7 @@ pub fn acquire_next_swapchain_image_system(
     current_frame_data_resource: Res<CurrentFrameDataResource>,
     mut current_swapchain_image_resource: ResMut<CurrentSwapchainImageResource>,
 ) {
+    println!("3");
     let frame_data = current_frame_data_resource.current_frame_data.unwrap();
     let (result, image_index) = vulkan_contex_resource
         .device
@@ -29,7 +30,7 @@ pub fn acquire_next_swapchain_image_system(
         panic!("{result}");
     }
 
-    current_swapchain_image_resource.image_index = image_index;
+    current_swapchain_image_resource.image_index = image_index as _;
     current_swapchain_image_resource.current_swapchain_image =
         Some(swapchain_resource.images[image_index as usize]);
 }

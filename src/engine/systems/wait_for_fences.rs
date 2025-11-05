@@ -8,6 +8,8 @@ pub fn wait_for_fences_system(
     vulkan_context_resource: Res<VulkanContextResource>,
     current_frame_data_resource: Res<CurrentFrameDataResource>,
 ) {
+    println!("2");
+
     let frame_data = current_frame_data_resource.current_frame_data.unwrap();
 
     let device = &vulkan_context_resource.device;

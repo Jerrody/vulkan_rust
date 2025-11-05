@@ -9,6 +9,7 @@ pub fn get_current_frame_data_system(
     frames_data_resource: Res<FramesDataResource>,
     mut current_frame_data_resource: ResMut<CurrentFrameDataResource>,
 ) {
+    println!("1");
     current_frame_data_resource.current_frame_data =
         Some(frames_data_resource.data[current_framebuffer_number_resource.index]);
 }
