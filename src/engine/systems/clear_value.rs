@@ -25,7 +25,7 @@ pub fn clear_value_system(
         .unwrap();
     utils::transition_image(
         &command_buffer,
-        image,
+        &image,
         ImageLayout::Undefined,
         ImageLayout::General,
     );
@@ -48,7 +48,7 @@ pub fn clear_value_system(
 
     utils::transition_image(
         &command_buffer,
-        image,
+        &image,
         ImageLayout::General,
         ImageLayout::PresentSrcKHR,
     );

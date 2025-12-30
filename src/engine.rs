@@ -94,6 +94,7 @@ impl Engine {
             queue_family_index,
             queue,
         };
+        println!("{:?}", window.inner_size());
         let swapchain_resource = Self::create_swapchain_resource(
             &physical_device,
             &device,
@@ -265,7 +266,7 @@ impl Engine {
             .max_by_key(|fmt| match fmt {
                 // we have one pair of format/color_space that we prefer
                 vk::SurfaceFormatKHR {
-                    format: vk::Format::B8G8R8A8Srgb,
+                    format: vk::Format::B8G8R8A8Unorm,
                     color_space: vk::ColorSpaceKHR::SrgbNonlinear,
                 } => 1,
                 _ => 0,
@@ -309,7 +310,7 @@ impl Engine {
             .image_color_space(format.color_space)
             .image_extent(extent)
             .image_array_layers(1)
-            .image_usage(vk::ImageUsageFlags::ColorAttachment)
+            .image_usage(vk::ImageUsageFlags::ColorAttachment | vk::ImageUsageFlags::TransferDst)
             .image_sharing_mode(vk::SharingMode::Exclusive)
             .pre_transform(capabilities.current_transform)
             .composite_alpha(vk::CompositeAlphaFlagsKHR::Opaque)
@@ -356,7 +357,7 @@ impl Engine {
             .flags(CommandPoolCreateFlags::ResetCommandBuffer)
             .queue_family_index(queue_family_index as _);
 
-        for _ in 0..Self::FRAMES_IN_FLIGHT {
+        for _ in Default::default()..Self::FRAMES_IN_FLIGHT {
             let command_pool = device
                 .create_command_pool(&command_pool_create_info)
                 .unwrap();

@@ -5,7 +5,7 @@ use crate::engine::create_info;
 #[inline(always)]
 pub fn transition_image(
     command_buffer: &CommandBuffer,
-    image: Image,
+    image: &Image,
     current_layout: ImageLayout,
     new_layout: ImageLayout,
 ) {
@@ -26,7 +26,7 @@ pub fn transition_image(
         .old_layout(current_layout)
         .new_layout(new_layout)
         .subresource_range(image_subresource_range)
-        .image(&image)];
+        .image(image)];
 
     let dependency_info = DependencyInfo::default().image_memory_barriers(&image_memory_barriers);
 
